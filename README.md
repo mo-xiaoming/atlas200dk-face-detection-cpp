@@ -6,7 +6,7 @@
 
   [一步一坑](#one)
 
-  [重写的face-detection](#two)
+  [编译重写的face-detection](#two)
 
 ## 一步一坑<a name="one"></a>
 
