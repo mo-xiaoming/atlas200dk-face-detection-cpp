@@ -5,6 +5,7 @@
 经过两个星期的折腾，现在我可以评价：“至少就Atlas 200DK来说，当前的项目质量是不能让人满意的“
 
   [一步一坑](#one)
+
   [重写的face-detection](#two)
 
 ## 一步一坑<a name="one"></a>
@@ -33,11 +34,11 @@ E40000: Failed to import te.platform.log_util.
 
 观察一下树莓派Zero的摄像头和排线，非常自然。淘宝上买的大路货的支架也没什么可说的
 
-![Pi Zero](https://github.com/mo-xiaoming/atlas200dk-face-detection-cpp/blob/master/jpgs/200dk.jpg?raw=true)
+![Pi Zero](https://github.com/mo-xiaoming/atlas200dk-face-detection-cpp/blob/main/jpgs/200dk.jpeg?raw=true)
 
 再看一下200DK的摄像头，一个夜视，一个普通，两个支架全都是倒着的。既然文档里用的摄像头就是树莓派兼容版，难道华为的人们就没有发现淘宝上销量最大的摄像头支架非得倒着才能用吗？
 
-![200DK](https://github.com/mo-xiaoming/atlas200dk-face-detection-cpp/blob/master/jpgs/pi.jpg?raw=true)
+![200DK](https://github.com/mo-xiaoming/atlas200dk-face-detection-cpp/blob/main/jpgs/pi.jpeg?raw=true)
 
 这就是上面提到的上盖的用处，倒过来的摄像头支架正好靠在上面
 
@@ -59,7 +60,7 @@ E40000: Failed to import te.platform.log_util.
 Aborted
 ```
 
-这是因为制卡脚本会把开发板上的`/proc/sys/vm/overcommit_memory`的值设置为`0`，这样会内存不够。在root下，`echo 0 > /proc/sys/vm/overcommit_memory`就好了
+这是因为制卡脚本会把开发板上的`/proc/sys/vm/overcommit_memory`的值设置为`2`，这样会内存不够。在root下，`echo 0 > /proc/sys/vm/overcommit_memory`就好了
 
 ### 不能带参数执行
 
@@ -97,13 +98,13 @@ bool Camera::IsOpened(int channelID){
 }
 ```
 
-当时我在改完全不相干的代码，然后发现运行时摄像头不打开了，然后发现这个bug，随后被gcc的undefined sanitizer确认
+当时我在改完全不相干的代码，然后发现运行时摄像头不打开了，然后发现这个bug，然后被gcc的undefined sanitizer确认
 
 ```
 /home/HwHiAiUser/romote/src/camera.cpp:122:31:runtime error: load of value 170, which is not a valid value for type 'bool'
 ```
 
-这说明这些代码完全没有经过工具坚持，也就是说没有任何值得一提的CI/CD
+这说明这些代码完全没有经过工具检查，也就是说没有任何值得一提的CI/CD
 
 ### 我以为这是C++接口
 
@@ -125,9 +126,13 @@ extern "C" {
 
 ### 编译
 
-我是用了conan，配置的方法参见conan.io官方文档。C++项目应该使用包管理器，而不是手工折腾第三方库。很遗憾opencv的一个依赖目前在arm下编译有问题，所以opencv只能依赖手工编译的方式。如果你不用的话可以手工编译spdlog和可选的fmt。
+我是用了conan，配置的方法参见conan.io官方文档。2021年的C++项目应该使用包管理器，而不是手工折腾第三方库。
 
-更改`src/CMakeLists.txt`中的include和lib路径
+很遗憾opencv的一个依赖目前在arm下编译有问题，所以opencv只能依赖手工编译的方式。
+
+当然如果你觉得时间太多的话，也可以手工编译spdlog和fmt
+
+记得更改`src/CMakeLists.txt`中的include和lib路径
 
 
 ```bash
@@ -137,7 +142,11 @@ cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/usr/bin/aarch64-linux-gn
 make -j
 ```
 
-⚠️，我是用了gcc 10，因为我想用最新的编译器，因为它能提供更高的优化，更简练的代码，更...，这是2021年，没有理由卡在老编译器版本上。另外`CMakeLists.txt`里用了c++20的标准，如果你不想安装新编译器的话，需要把它改成17以下。并且有些地方会编译不过，例如`main.cpp`里，gcc7不支持`std::from_chars`，你必须改成`std::strtol`之类的。至于为什么要用更新的`std::from_chars`？因为它的性能更好，如我提到的那样，这种benchmark很多了
+⚠️ 我是用了gcc 10，因为我想用最新的编译器，因为它能提供更高的优化，更简练的代码，更...，这是2021年，没有理由卡在老编译器版本上。如果有人告诉你需要担心“不兼容的问题“的话，你就有相当的理由怀疑它的产品质量。
+
+另外`CMakeLists.txt`里用了c++20的标准，如果你不想安装新编译器的话，需要把它改成17以下。并且有些地方会编译不过，例如`main.cpp`里，gcc7不支持`std::from_chars`，你必须改成`std::strtol`之类的。至于为什么要用更新的`std::from_chars`？因为它的性能更好，如我提到的那样，这种性能测试很多了
+
+再一次的说，现在是2021年了，不要写C风格的C++了，除非你知道在做什么；要用包管理器，除非你在公司有“严谨”的流程；要用新编译器，除非你的项目有“历史的沉淀”。
 
 ### 运行
 
@@ -150,3 +159,6 @@ cd ../out
 
 `./main`后面跟摄像头的channel，默认是`0`
 
+### CLion
+
+BTW，我用的CLion做编译器，远程ssh的方式直接开发。如果上面的一堆"如果使用Mind Studio的话"还没有把你劝退的话，理由还有一个，在2021年，作为C++的IDE，Mind Studio弱爆了。而且我也不想升级/编译一次，得捣鼓两台机器的so/h/a之类的东西
