@@ -1,0 +1,10 @@
+---
+Checks: '*,-darwin-*,-android-*,-fuchsia-*,-objc-*,-zircon-*,-abseil-*,-llvm-*,-llvmlibc-*,-linuxkernel-*,-altera-struct-pack-align,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-modernize-use-trailing-return-type,-readability-convert-member-functions-to-static,-google-runtime-references'
+CheckOptions:
+  - { key: readability-identifier-naming.NamespaceCase,       value: lower_case }
+  - { key: readability-identifier-naming.ClassCase,           value: aNy_CasE }
+  - { key: readability-identifier-naming.PrivateMemberSuffix, value: _ }
+  - { key: readability-identifier-naming.StructCase,          value: aNy_CasE }
+  - { key: readability-identifier-naming.FunctionCase,        value: lower_case }
+  - { key: readability-identifier-naming.VariableCase,        value: lower_case }
+  - { key: readability-identifier-naming.MacroDefinitionCase, value: UPPER_CASE }
